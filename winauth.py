@@ -47,7 +47,7 @@ def main():
     try:
         authenticators = get_authenticators()
     except Exception as e:
-        print('Could not load WinAuth configuration! {}'.format(e), sys.stderr)
+        print('Could not load WinAuth configuration! {}'.format(e), file=sys.stderr)
         return 1
 
     if len(sys.argv) == 1:
@@ -61,7 +61,7 @@ def main():
             print('Authenticator {} not found!'.format(sys.argv[1]), file=sys.stderr)
             return 1
         elif certainty < 100:
-            print('Guessed authenticator {}'.format(name))
+            print('Guessed authenticator {}'.format(name), file=sys.stderr)
     else:
         try:
             auth = authenticators[name]
