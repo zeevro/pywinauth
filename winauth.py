@@ -25,7 +25,7 @@ def _normalize_name(name):
     return '_'.join(name.lower().split())
 
 
-def _make_authenticator(secret, digits, digest, interval):
+def _make_authenticator(secret, digits=6, digest='sha1', interval=30):
     return pyotp.TOTP(s=base64.b32encode(binascii.a2b_hex(secret)),
                       digits=int(digits),
                       digest=digest,
