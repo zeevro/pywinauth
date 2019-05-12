@@ -14,6 +14,8 @@ except:
     have_pyperclip = False
 
 try:
+    import warnings
+    warnings.filterwarnings('ignore', module='fuzzywuzzy')
     from fuzzywuzzy import process
     from fuzzywuzzy.fuzz import QRatio
     have_fuzzy = True
