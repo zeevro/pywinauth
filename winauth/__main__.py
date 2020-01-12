@@ -27,7 +27,7 @@ except ImportError:
     have_qrcode = False
 
 
-def _output(s):
+def _output(s: str) -> None:
     if not s:
         return
     print(s)
@@ -38,7 +38,7 @@ def _output(s):
             print('Clipboard failed! {}'.format(e), file=sys.stderr)
 
 
-def main():
+def main() -> int:  # pylint: disable=inconsistent-return-statements
     p = argparse.ArgumentParser()
     p.add_argument('-x', '--xml-path')
     p.add_argument('--secret', dest='actions', action='append_const', const='secret')
@@ -64,7 +64,7 @@ def main():
         if certainty < 15:
             print('Authenticator {} not found!'.format(sys.argv[1]), file=sys.stderr)
             return 1
-        elif certainty < 100:
+        if certainty < 100:
             print('Guessed authenticator {}'.format(name), file=sys.stderr)
     else:
         try:
