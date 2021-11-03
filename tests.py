@@ -23,9 +23,9 @@ def url2dict(url):
     return d
 
 
-class MyTOTP(TestCase):
+class GetTotpObj(TestCase):
     def test_regular(self):
-        auth = winauth.MyTOTP('test', SECRET_HEX)
+        auth = winauth._get_totp_obj('test', SECRET_HEX)
 
         self.assertEqual(auth.name, 'test')
         self.assertEqual(auth.byte_secret(), SECRET_BYTES)
@@ -34,7 +34,7 @@ class MyTOTP(TestCase):
         self.assertEqual(auth.interval, 30)
 
     def test_args_order(self):
-        auth = winauth.MyTOTP('test', SECRET_HEX, 14, 'sha256', 32)
+        auth = winauth._get_totp_obj('test', SECRET_HEX, 14, 'sha256', 32)
 
         self.assertEqual(auth.name, 'test')
         self.assertEqual(auth.byte_secret(), SECRET_BYTES)
@@ -43,43 +43,43 @@ class MyTOTP(TestCase):
         self.assertEqual(auth.interval, 32)
 
     def test_digits(self):
-        auth = winauth.MyTOTP('test', SECRET_HEX, 8)
+        auth = winauth._get_totp_obj('test', SECRET_HEX, 8)
         self.assertEqual(auth.digits, 8)
-        auth = winauth.MyTOTP('test', SECRET_HEX, '8')
+        auth = winauth._get_totp_obj('test', SECRET_HEX, '8')
         self.assertEqual(auth.digits, 8)
         with self.assertRaises(ValueError):
-            winauth.MyTOTP('test', SECRET_HEX, 'x')
+            winauth._get_totp_obj('test', SECRET_HEX, 'x')
 
     def test_digest(self):
-        auth = winauth.MyTOTP('test', SECRET_HEX, digest='sha256')
+        auth = winauth._get_totp_obj('test', SECRET_HEX, digest='sha256')
         self.assertEqual(auth.digest, sha256)
 
         digest = 'bad_digest_algo_asdf'
         with self.assertRaisesRegex(AttributeError, "module 'hashlib' has no attribute '{}'".format(digest)):
-            winauth.MyTOTP('test', SECRET_HEX, digest=digest)
+            winauth._get_totp_obj('test', SECRET_HEX, digest=digest)
 
     def test_interval(self):
-        auth = winauth.MyTOTP('test', SECRET_HEX, interval=60)
+        auth = winauth._get_totp_obj('test', SECRET_HEX, interval=60)
         self.assertEqual(auth.interval, 60)
-        auth = winauth.MyTOTP('test', SECRET_HEX, interval='60')
+        auth = winauth._get_totp_obj('test', SECRET_HEX, interval='60')
         self.assertEqual(auth.interval, 60)
         with self.assertRaises(ValueError):
-            winauth.MyTOTP('test', SECRET_HEX, interval='x')
+            winauth._get_totp_obj('test', SECRET_HEX, interval='x')
 
     def test_url(self):
-        self.assertDictEqual(url2dict(winauth.MyTOTP('test34', SECRET_HEX).url()),
+        self.assertDictEqual(url2dict(winauth._get_totp_obj('test34', SECRET_HEX).provisioning_uri()),
                              url2dict('otpauth://totp/test34?secret={}'.format(SECRET_ENCODED)))
 
-        self.assertDictEqual(url2dict(winauth.MyTOTP('test', SECRET_HEX, digits=8).url()),
+        self.assertDictEqual(url2dict(winauth._get_totp_obj('test', SECRET_HEX, digits=8).provisioning_uri()),
                              url2dict('otpauth://totp/test?secret={}&digits=8'.format(SECRET_ENCODED)))
 
-        self.assertDictEqual(url2dict(winauth.MyTOTP('test', SECRET_HEX, digest='sha256').url()),
+        self.assertDictEqual(url2dict(winauth._get_totp_obj('test', SECRET_HEX, digest='sha256').provisioning_uri()),
                              url2dict('otpauth://totp/test?secret={}&algorithm=SHA256'.format(SECRET_ENCODED)))
 
-        self.assertDictEqual(url2dict(winauth.MyTOTP('test', SECRET_HEX, interval=32).url()),
+        self.assertDictEqual(url2dict(winauth._get_totp_obj('test', SECRET_HEX, interval=32).provisioning_uri()),
                              url2dict('otpauth://totp/test?secret={}&period=32'.format(SECRET_ENCODED)))
 
-        self.assertDictEqual(url2dict(winauth.MyTOTP('test', SECRET_HEX, 14, 'sha256', 32).url()),
+        self.assertDictEqual(url2dict(winauth._get_totp_obj('test', SECRET_HEX, 14, 'sha256', 32).provisioning_uri()),
                              url2dict('otpauth://totp/test?secret={}&algorithm=SHA256&digits=14&period=32'.format(SECRET_ENCODED)))
 
 
@@ -140,7 +140,7 @@ def make_xml(n_regular, n_special, n_invalid):
 
 
 def urls_dict(auths):
-    return {name: auth.url() for name, auth in auths.items()}
+    return {name: auth.provisioning_uri() for name, auth in auths.items()}
 
 
 class GetAuthenticators(TestCase):
@@ -177,21 +177,21 @@ class GetAuthenticators(TestCase):
     @patch('winauth.open', mock_open(read_data=make_xml(1, 0, 3)))
     def test_one_valid_authenticator(self):
         self.assertDictEqual(urls_dict(winauth.get_authenticators()),
-                             urls_dict({'auth_1': winauth.MyTOTP('Auth 1', *REGULAR_SECRET_DATA)}))
+                             urls_dict({'auth_1': winauth._get_totp_obj('Auth 1', *REGULAR_SECRET_DATA)}))
 
     @patch.dict('os.environ', {'APPDATA': ''})
     @patch('winauth.open', mock_open(read_data=make_xml(3, 0, 3)))
     def test_multiple_valid_authenticators(self):
         self.assertDictEqual(urls_dict(winauth.get_authenticators()),
-                             urls_dict({'auth_1': winauth.MyTOTP('Auth 1', *REGULAR_SECRET_DATA),
-                                        'auth_2': winauth.MyTOTP('Auth 2', *REGULAR_SECRET_DATA),
-                                        'auth_3': winauth.MyTOTP('Auth 3', *REGULAR_SECRET_DATA)}))
+                             urls_dict({'auth_1': winauth._get_totp_obj('Auth 1', *REGULAR_SECRET_DATA),
+                                        'auth_2': winauth._get_totp_obj('Auth 2', *REGULAR_SECRET_DATA),
+                                        'auth_3': winauth._get_totp_obj('Auth 3', *REGULAR_SECRET_DATA)}))
 
     @patch.dict('os.environ', {'APPDATA': ''})
     @patch('winauth.open', mock_open(read_data=make_xml(0, 1, 0)))
     def test_special_authenticator(self):
         self.assertDictEqual(urls_dict(winauth.get_authenticators()),
-                             urls_dict({'auth_1': winauth.MyTOTP('Auth 1', *SPECIAL_SECRET_DATA)}))
+                             urls_dict({'auth_1': winauth._get_totp_obj('Auth 1', *SPECIAL_SECRET_DATA)}))
 
 
 if __name__ == '__main__':

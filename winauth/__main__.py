@@ -81,11 +81,11 @@ def main() -> int:  # pylint: disable=inconsistent-return-statements
         _output(auth.secret.decode())
 
     if 'url' in args.actions:
-        _output(auth.url())
+        _output(auth.provisioning_uri())
 
     if 'qr' in args.actions:
         qr = qrcode.QRCode()
-        qr.add_data(auth.url())
+        qr.add_data(auth.provisioning_uri())
         qr.print_ascii(invert=True)
 
 
