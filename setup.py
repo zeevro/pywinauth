@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='pywinauth',
-    version='0.3.0',
+    version='0.4.0',
     url='https://github.com/zeevro/pywinauth',
     download_url='https://github.com/zeevro/pywinauth/archive/master.zip',
     author='Zeev Rotshtein',
@@ -11,7 +11,7 @@ setup(
     maintainer='Zeev Rotshtein',
     maintainer_email='zeevro@gmail.com',
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Environment :: Console',
         'License :: Public Domain',
         'Natural Language :: English',
